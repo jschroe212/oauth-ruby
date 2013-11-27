@@ -15,6 +15,27 @@ class RackRequestProxyTest < Test::Unit::TestCase
     assert_equal 'GET', request_proxy.method
   end
 
+  def test_that_proxy_get_with_array_works
+    request = Rack::Request.new(Rack::MockRequest.env_for('http://example.com/test?keys[]=value1&keys[]=value2'))
+    request_proxy = OAuth::RequestProxy.proxy(request, {:uri => 'http://example.com/test?keys[]=value1&keys[]=value2'})
+
+    expected_parameters = {'keys[]' => ['value1', 'value2']}
+    assert_equal expected_parameters, request_proxy.parameters
+    assert_equal 'http://example.com/test', request_proxy.normalized_uri
+    assert_equal 'GET', request_proxy.method
+  end
+
+  def test_that_proxy_get_with_hash_and_array_works
+    url = 'http://example.com/test?search[keys][]=value&search[keys][]=value2'
+    request = Rack::Request.new(Rack::MockRequest.env_for(url))
+    request_proxy = OAuth::RequestProxy.proxy(request, {:uri => url})
+
+    expected_parameters = {"search"=>{"keys"=>["value", "value2"]}}
+    assert_equal expected_parameters, request_proxy.parameters
+    assert_equal 'http://example.com/test', request_proxy.normalized_uri
+    assert_equal 'GET', request_proxy.method
+  end
+
   def test_that_proxy_simple_post_request_works
     request = Rack::Request.new(Rack::MockRequest.env_for('http://example.com/test', :method => 'POST'))
     params = {'key' => 'value'}
@@ -26,6 +47,17 @@ class RackRequestProxyTest < Test::Unit::TestCase
     assert_equal 'POST', request_proxy.method
   end
 
+  def test_that_proxy_post_with_array_works
+    params = {'keys' => ['value1','value2']}
+    request = Rack::Request.new(Rack::MockRequest.env_for('http://example.com/test', :method => 'POST', :params => params))
+    request_proxy = OAuth::RequestProxy.proxy(request, {:uri => 'http://example.com/test', })
+
+    expected_parameters = {'keys[]' => ['value1','value2']}
+    assert_equal expected_parameters, request_proxy.parameters
+    assert_equal 'http://example.com/test', request_proxy.normalized_uri
+    assert_equal 'POST', request_proxy.method
+  end
+  
   def test_that_proxy_post_and_get_request_works
     request = Rack::Request.new(Rack::MockRequest.env_for('http://example.com/test?key=value', :method => 'POST', :input => 'key2=value2'))
     params = {'key2' => 'value2'}

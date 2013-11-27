@@ -88,7 +88,9 @@ class TestOAuthHelper < Test::Unit::TestCase
     assert_equal(["prefix%5Bfoo%5D=bar"], OAuth::Helper.normalize_nested_query({:foo => 'bar'}, 'prefix'))
     assert_equal(["prefix%5Buser%5D%5Bage%5D=12",
      "prefix%5Buser%5D%5Bdate%5D=2011-10-05",
-     "prefix%5Buser%5D%5Btwitter_id%5D=123"], OAuth::Helper.normalize_nested_query({:user => {:twitter_id => 123, :date => '2011-10-05', :age => 12}}, 'prefix'))
+     "prefix%5Buser%5D%5Bkeys%5D%5B%5D=1",
+     "prefix%5Buser%5D%5Bkeys%5D%5B%5D=2",
+     "prefix%5Buser%5D%5Btwitter_id%5D=123"], OAuth::Helper.normalize_nested_query({:user => {:twitter_id => 123, :date => '2011-10-05', :age => 12, :keys=>[1,2]}}, 'prefix'))
   end
 
 end

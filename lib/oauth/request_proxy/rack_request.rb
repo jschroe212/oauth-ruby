@@ -30,15 +30,31 @@ module OAuth::RequestProxy
   protected
 
     def query_params
-      request.GET
+      normalize_first_level_arrays(request.GET)
     end
 
     def request_params
       if request.content_type and request.content_type.to_s.downcase.start_with?("application/x-www-form-urlencoded")
-        request.POST
+        normalize_first_level_arrays(request.POST)
       else
         {}
       end
+    end
+
+    def normalize_first_level_arrays(params)
+      normalized_params = params.dup
+
+      params.each do |k,values| 
+        if values.is_a?(Array)
+          values.each do |v|
+            normalized_params["#{k}[]"]||=[]
+            normalized_params["#{k}[]"] << v
+          end
+          normalized_params.delete(k)
+        end
+      end
+
+      normalized_params
     end
   end
 end
